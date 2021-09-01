@@ -44,21 +44,22 @@ icg_dose = st.sidebar.slider("ICG Dose [mg]", value=10, min_value=0, max_value=2
                              step=5)
 
 '''
-# Interactive Indocyanine Green model
-Simulation of a recently developed model of indocyanine green clearance by the liver.
+# Physiological based pharmacokinetics model of indocyanine green
+Personalized prediction of survival after hepatectomy.
 '''
 
-st.image(
-    image="./model/icg_body.png",
-    caption="Model overview: A: PBPK model. The whole-body model for ICG consists "
-            "of venous blood, arterial blood, lung, liver, gastrointestinal tract, "
-            "and rest compartment (accounting for organs not modeled in detail). "
-            "The systemic blood circulation connects these compartments. "
-            "B: Liver model. ICG is taken up into the liver tissue (hepatocytes) "
-            "via OATP1B3. The transport was modeled as competitively inhibited by "
-            "plasma bilirubin. Hepatic ICG is excreted in the bile from where it is "
-            "subsequently excreted in the feces. No metabolism of ICG occurs in "
-            "the liver.")
+# st.image(
+#     image="./model/icg_body.png",
+#     width=600,
+#     caption="Model overview: A: PBPK model. The whole-body model for ICG consists "
+#             "of venous blood, arterial blood, lung, liver, gastrointestinal tract, "
+#             "and rest compartment (accounting for organs not modeled in detail). "
+#             "The systemic blood circulation connects these compartments. "
+#             "B: Liver model. ICG is taken up into the liver tissue (hepatocytes) "
+#             "via OATP1B3. The transport was modeled as competitively inhibited by "
+#             "plasma bilirubin. Hepatic ICG is excreted in the bile from where it is "
+#             "subsequently excreted in the feces. No metabolism of ICG occurs in "
+#             "the liver.")
 
 '''
 ## Results
@@ -72,11 +73,8 @@ data = [xr[key].values[:, 0] for key in selections]
 df = pd.DataFrame(dict(zip(selections, data)))
 # print(df.head(10))
 
-# # st.line_chart(df)
-# c = alt.Chart(df).mark_circle().encode(
-#     x='time', y='[Cve_icg]', tooltip=['[Cve_icg]'])
-#     # x='time', y='[Cve_icg]')
-# st.altair_chart(c, use_container_width=True)
+
+
 
 fig, (ax1, ax2) = plt.subplots(figsize=(7, 5), nrows=1, ncols=2)
 ax1.plot(df.time, df["[Cve_icg]"], '-o', color="blue", alpha=0.7)
@@ -109,4 +107,13 @@ bioRxiv 2021.08.11.455999; doi: https://doi.org/10.1101/2021.08.11.455999
 bioRxiv 2021.06.15.448411; doi: https://doi.org/10.1101/2021.06.15.448411,  
 [Submitted to Frontiers Physiology 2021-06-30]
 '''
-
+st.markdown("## Disclaimer")
+st.caption("The software is provided **AS IS**, without warranty of any kind, express or implied, "
+           "including but not limited to the warranties of merchantability, "
+           "fitness for a particular purpose and noninfringement. In no event shall the "
+           "authors or copyright holders be liable for any claim, damages or other liability, "
+           "whether in an action of contract, tort or otherwise, arising from, out of or in "
+           "connection with the software or the use or other dealings in the software. "
+           ""
+           "This software is a research proof-of-principle and not fit for any clinical application."
+           )
