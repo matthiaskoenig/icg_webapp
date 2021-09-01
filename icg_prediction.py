@@ -21,20 +21,21 @@ hepatic_bloodflow = 1.0  # [l/min] (min 0.2, max 3.0)
 # - liver volume (sample if NA, use 1D/2D sampling)
 # - liver blood flow  (sample if NA, use 1D/2D sampling)
 # - oatp1b3 (sample)
-
-
-
-
-
-
 # here we have 100 samples;
 
 # Calculate post-operative ICG-R15 results
-
 # run simulation with various resection rate [0, 10, ... ,90]
 # - for every resection rate we get a distribution of postoperative ICG-R15
 # - display information which supports decision
 # => boxplot of ICG-R15, ICG-PDR
+
+# for resection_rate in [0, 0.5]:
+resection_rate = 0.5
+
+# run simulation & calculate ICG-R15
+
+
+
 
 # translate in survival
 # - => post-operative ICG-R15 can be tranlated into probability of survival via 1D classification model

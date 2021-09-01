@@ -73,9 +73,6 @@ data = [xr[key].values[:, 0] for key in selections]
 df = pd.DataFrame(dict(zip(selections, data)))
 # print(df.head(10))
 
-
-
-
 fig, (ax1, ax2) = plt.subplots(figsize=(7, 5), nrows=1, ncols=2)
 ax1.plot(df.time, df["[Cve_icg]"], '-o', color="blue", alpha=0.7)
 ax1.plot(df.time, df["[Car_icg]"], '-o', color="black", alpha=0.7)
