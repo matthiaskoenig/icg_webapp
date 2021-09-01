@@ -8,7 +8,7 @@ import numpy as np
 from pathlib import Path
 import libsbml
 import json
-
+from scipy.stats import lognorm, uniform, norm
 
 logger = logging.getLogger(__name__)
 base_path = Path(__file__).parent
@@ -26,6 +26,9 @@ with open(base_path / "data" / "oatp1b3_distribution.json", "r") as f_json:
 
 with open(base_path / "data" / "cov_liver_volume_bloodflow.json", "r") as f_json:
     cov_liver_volume_bloodflow: Dict = json.load(f_json)
+    # fix covariance matrix
+    for _, info in cov_liver_volume_bloodflow.items():
+        info['cov'] = np.array(info['cov'])
 
 
 def sample_liver_volume_bloodflow(samples: pd.DataFrame) -> pd.DataFrame:
@@ -75,23 +78,19 @@ def samples_for_individual(bodyweight: float, age: float, n: int = 100, random_s
         "AGECLASS": [ageclass] * n,
         "BMXWT": [bodyweight] * n,
     })
-    print(samples)
 
     # oatp
-    oatp_dist, oatp_unit, oatp_pars = oatp1b3_distribution
+    oatp_pars = oatp1b3_distribution
+    oatp_dist = lognorm(s=oatp_pars['s'], scale=oatp_pars['scale'])
     oatp_samples = oatp_dist.rvs(size=len(samples))
     samples["FOATP1B3"] = oatp_samples
-
-    # bsa via formula
-    samples["BSA"] = 0.024265 * np.power(samples["BMXWT"], 0.5378) * np.power(
-        samples["BMXHT"], 0.3964)
 
     # dose
     samples["IVDOSE_icg"] = 0.5 * samples["BMXWT"]
 
     # liver volume and hbf
     samples = sample_liver_volume_bloodflow(samples=samples)
-    samples["f_bloodflow"] = samples["LIVBFKG"]/(COBW * 60.0/1000.0 * FVli/ 1000)
+    samples["f_bloodflow"] = samples["LIVBFKG"]/(COBW * 60.0/1000.0 * FVli/1000)
 
     return samples
 
@@ -102,3 +101,6 @@ if __name__ == "__main__":
         age=55,
         n=15,
     )
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    print(samples)
