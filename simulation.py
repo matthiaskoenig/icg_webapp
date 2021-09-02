@@ -7,8 +7,8 @@ import xarray as xr
 
 from sbmlsim.utils import timeit
 from sbmlsim.simulation import Timecourse, TimecourseSim, ScanSim, Dimension
-# from sbmlsim.simulator import SimulatorSerial as Simulator
-from sbmlsim.simulator.simulation_ray import SimulatorParallel as Simulator
+from sbmlsim.simulator import SimulatorSerial as Simulator
+# from sbmlsim.simulator.simulation_ray import SimulatorParallel as Simulator
 
 from settings import icg_model_path
 from sampling import samples_for_individual
@@ -16,16 +16,17 @@ from sampling import samples_for_individual
 
 def load_model(model_path: Path) -> Simulator:
     """Load model."""
-    simulator = Simulator(model_path)
+    simulator = Simulator(
+        model_path,
+        absolute_tolerance=1e-8,
+        relative_tolerance=1e-8,
+    )
     simulator.set_timecourse_selections(["time", "[Cve_icg]"])
     return simulator
 
 
-simulator = load_model(icg_model_path)
-
-
 @timeit
-def simulate_samples(samples: pd.DataFrame) -> Tuple[xr.Dataset, pd.DataFrame]:
+def simulate_samples(samples: pd.DataFrame, simulator) -> Tuple[xr.Dataset, pd.DataFrame]:
     """Simulate sample individuals with given simulator.
 
     Samples contain multiple samples per individual and possibly multiple
@@ -82,8 +83,9 @@ if __name__ == "__main__":
         n=100,
         resection_rates=np.linspace(0.1, 0.9, num=9)
     )
+    simulator = load_model(model_path=icg_model_path)
 
-    xres, samples = simulate_samples(samples)
+    xres, samples = simulate_samples(samples, simulator=simulator)
     samples = calculate_pk(samples=samples, xres=xres)
 
     print("-" * 80)

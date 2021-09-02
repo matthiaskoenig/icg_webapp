@@ -68,11 +68,12 @@ def samples_for_individual(
         age: float,
         f_cirrhosis: float,
         n: int = 100,
-        resection_rates=None,
-        random_seed: int = 42,
+        resection_rates: np.ndarray = None,
+        random_seed: int = None,
 ):
     """Sample data for given individual."""
-    np.random.seed(random_seed)
+    if random_seed:
+        np.random.seed(random_seed)
 
     if age <= 40:
         ageclass = "18-40"

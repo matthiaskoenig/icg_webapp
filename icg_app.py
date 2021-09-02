@@ -2,86 +2,123 @@ from typing import Dict
 
 import numpy as np
 import streamlit as st
-import xarray
-import pandas as pd
-import altair as alt
-from matplotlib import pyplot as plt
 
-from sbmlsim.simulation import Timecourse, TimecourseSim
-from sbmlsim.simulator import SimulatorSerial as Simulator
-
-from pathlib import Path
-
-from classification import classification, figure
-from icg_simulation import simulate_samples, calculate_pk
+from classification import classification
 from sampling import samples_for_individual
+from settings import icg_model_path
+from simulation import simulate_samples, calculate_pk, load_model
+from visualization import figure_boxplot, figure_histograms
 
-st.sidebar.title('Settings')
-st.sidebar.markdown("## Integration")
-endtime = st.sidebar.number_input("End time [min]", value=20, min_value=1,
-                                  max_value=200, step=10)
-steps = st.sidebar.number_input("Steps", value=100, min_value=2, max_value=300,
-                                step=10)
-
-st.sidebar.markdown("## Parameters")
-icg_dose = st.sidebar.slider("ICG Dose [mg]", value=10, min_value=0, max_value=200,
-                             step=5)
+# np.random.seed(42)
 
 '''
 # Physiological based pharmacokinetics model of indocyanine green
-Personalized prediction of survival after hepatectomy.
+## Personalized prediction of survival after hepatectomy
 '''
+col1, col2 = st.columns(2)
+col1.image(
+    image="./model/icg_body.png",
+)
+col2.caption(
+    "Model overview: A: PBPK model. The whole-body model for ICG consists "
+    "of venous blood, arterial blood, lung, liver, gastrointestinal tract, "
+    "and rest compartment (accounting for organs not modeled in detail). "
+    "The systemic blood circulation connects these compartments. "
+    "B: Liver model. ICG is taken up into the liver tissue (hepatocytes) "
+    "via OATP1B3. The transport was modeled as competitively inhibited by "
+    "plasma bilirubin. Hepatic ICG is excreted in the bile from where it is "
+    "subsequently excreted in the feces. No metabolism of ICG occurs in "
+    "the liver."
+)
 
+samples = st.sidebar.slider(
+    "samples [-]",
+    value=50, min_value=50, max_value=1000, step=50
+)
+
+st.markdown("### Patient")
+col1, col2, col3 = st.columns(3)
+col1.markdown("**Anthropometric information**")
+
+bodyweight = col1.slider(
+    "Body weight [kg]",
+    value=75, min_value=30, max_value=140, step=1
+)
+age = col1.slider(
+    "Age [yr]",
+    value=55, min_value=18, max_value=84, step=1
+)
+
+col2.markdown("**Cirrhosis degree**")
+# FIXME: categorial
+f_cirrhosis = col2.slider(
+    "Cirrhosis [-]",
+    value=0.0, min_value=0.0, max_value=0.9
+)
+
+col3.markdown("**Liver volume**")
+# FIXME: categorial
+liver_volume = col3.slider(
+    "Liver volume [ml]",
+    value=1300, min_value=700, max_value=2500
+)
+liver_bloodflow = col3.slider(
+    "Hepatic bloodflow [ml/min]",
+    value=0.0, min_value=0.0, max_value=0.9
+)
+
+simulator = load_model(icg_model_path)
 resection_rates = np.linspace(0.1, 0.9, num=9)
 
 samples = samples_for_individual(
-    bodyweight=75,
-    age=55,
-    f_cirrhosis=0.4,
-    n=200,
-    resection_rates=resection_rates,
+    bodyweight=bodyweight,
+    age=age,
+    f_cirrhosis=f_cirrhosis,
+    n=samples,
+    resection_rates=resection_rates
 )
 
-xres, samples = simulate_samples(samples)
+#@st.cache
+def simulate_and_classify(samples):
+    """Simulate and classify the subject."""
+    data = samples.copy()
+    xres, data = simulate_samples(data, simulator)
+    data = calculate_pk(samples=data, xres=xres)
+    data = classification(samples=data)
+    return data
 
-print("-" * 80)
-print(xres)
-samples = calculate_pk(samples=samples, xres=xres)
-print(samples.head())
+data = simulate_and_classify(samples)
 
-# classification
-samples = classification(samples=samples,)
-
+st.markdown("### Personalized predictions")
+# figure_histograms
+fig_histograms = figure_histograms(data)
+col1, col2, col3 = st.columns(3)
+col1.pyplot(fig=fig_histograms["FOATP1B3"], clear_figure=False)
+col2.pyplot(fig=fig_histograms["LIVVOLKG"], clear_figure=False)
+col3.pyplot(fig=fig_histograms["LIVBFKG"], clear_figure=False)
 
 # figure boxplots
-figure(samples)
+fig_boxplots = figure_boxplot(data)
+
+col1, col2 = st.columns(2)
+col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False, bbox_inches="tight")
+col2.pyplot(fig=fig_boxplots["y_score"], clear_figure=False)
 
 
-# st.image(
-#     image="./model/icg_body.png",
-#     width=600,
-#     caption="Model overview: A: PBPK model. The whole-body model for ICG consists "
-#             "of venous blood, arterial blood, lung, liver, gastrointestinal tract, "
-#             "and rest compartment (accounting for organs not modeled in detail). "
-#             "The systemic blood circulation connects these compartments. "
-#             "B: Liver model. ICG is taken up into the liver tissue (hepatocytes) "
-#             "via OATP1B3. The transport was modeled as competitively inhibited by "
-#             "plasma bilirubin. Hepatic ICG is excreted in the bile from where it is "
-#             "subsequently excreted in the feces. No metabolism of ICG occurs in "
-#             "the liver.")
+
 
 
 '''
 ## References
-**Physiologically based modeling of the effect of physiological and anthropometric variability on indocyanine green based liver function tests**  
-*Adrian Köller, Jan Grzegorzewski and Matthias König*  
-bioRxiv 2021.08.11.455999; doi: https://doi.org/10.1101/2021.08.11.455999  
-[Submitted to Frontiers Physiology 2021-08-12]
-
 **Prediction of survival after hepatectomy using a physiologically based pharmacokinetic model of indocyanine green liver function tests**  
 *Adrian Köller, Jan Grzegorzewski, Michael Tautenhahn, Matthias König*  
 bioRxiv 2021.06.15.448411; doi: https://doi.org/10.1101/2021.06.15.448411,  
 [Submitted to Frontiers Physiology 2021-06-30]
+
+**Physiologically based modeling of the effect of physiological and anthropometric variability on indocyanine green based liver function tests**  
+*Adrian Köller, Jan Grzegorzewski and Matthias König*  
+bioRxiv 2021.08.11.455999; doi: https://doi.org/10.1101/2021.08.11.455999  
+[Submitted to Frontiers Physiology 2021-08-12]
 '''
 st.markdown("## Disclaimer")
 st.caption("The software is provided **AS IS**, without warranty of any kind, express or implied, "

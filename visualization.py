@@ -51,7 +51,6 @@ def figure_boxplot(predictions):
             _ = boxplot(ax, df[key], k, rate, n_rates, ylabel)
         figures[key] = f
 
-    plt.show()
     return figures
 
 
@@ -88,7 +87,6 @@ def figure_histograms(samples):
         ax.tick_params(axis="y", labelsize=15)
         figures[key] = f
 
-    plt.show()
     return figures
 
 
@@ -100,6 +98,8 @@ if __name__ == "__main__":
     # figure boxplots
     figure_boxplot(samples)
     figure_histograms(samples)
+
+    plt.show()
 
     import altair as alt
 
