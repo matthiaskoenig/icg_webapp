@@ -32,16 +32,17 @@ icg_dose = st.sidebar.slider("ICG Dose [mg]", value=10, min_value=0, max_value=2
 Personalized prediction of survival after hepatectomy.
 '''
 
+resection_rates = np.linspace(0.1, 0.9, num=9)
+
 samples = samples_for_individual(
     bodyweight=75,
     age=55,
     f_cirrhosis=0.4,
-    n=300,
+    n=200,
+    resection_rates=resection_rates,
 )
 
-
-resection_rates = np.linspace(0.1, 0.9, num=9)
-xres, samples = simulate_samples(samples, resection_rates)
+xres, samples = simulate_samples(samples)
 
 print("-" * 80)
 print(xres)

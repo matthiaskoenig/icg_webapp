@@ -65,7 +65,10 @@ def samples_for_individual(
         bodyweight: float,
         age: float,
         f_cirrhosis: float,
-        n: int = 100, random_seed: int = 42):
+        n: int = 100,
+        resection_rates=None,
+        random_seed: int = 42,
+):
     """Sample data for given individual."""
     np.random.seed(random_seed)
 
@@ -97,6 +100,17 @@ def samples_for_individual(
     samples = sample_liver_volume_bloodflow(samples=samples)
     samples["f_bloodflow"] = samples["LIVBFKG"]/(COBW * 60.0/1000.0 * FVli/1000)
 
+    # include resection rates in samples, i.e. in
+    # all individudals different resections are performed
+    if resection_rates is not None:
+        dfs = []
+        for rate in resection_rates:
+            df = samples.copy()
+            df['resection_rate'] = rate
+            dfs.append(df)
+
+        samples = pd.concat(dfs)
+
     return samples
 
 
@@ -105,6 +119,7 @@ if __name__ == "__main__":
         bodyweight=75,
         age=55,
         n=15,
+        resection_rates=None,
     )
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)

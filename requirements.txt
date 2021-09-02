@@ -8,6 +8,5 @@ sbmlsim>=0.2.0
 # git+git://github.com/matthiaskoenig/sbmlsim@develop#egg=sbmlsim
 
 libroadrunner-experimental>=2.0.10
-
 altair>=0.18.0
 altair_viewer

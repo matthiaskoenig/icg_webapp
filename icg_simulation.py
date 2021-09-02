@@ -26,16 +26,8 @@ simulator = load_model(icg_model_path)
 
 
 @timeit
-def simulate_samples(samples, resection_rates: np.ndarray) -> xr.Dataset:
+def simulate_samples(samples) -> xr.Dataset:
     """Simulate model."""
-    # include resection rates in samples
-    dfs = []
-    for rate in resection_rates:
-        df = samples.copy()
-        df['resection_rate'] = rate
-        dfs.append(df)
-
-    samples = pd.concat(dfs)
 
     Q_ = simulator.Q_
     tc = Timecourse(
@@ -71,14 +63,15 @@ def calculate_pk(samples, xres) -> pd.DataFrame:
     # ICG-R15
     #  icg(t=15)/max(icg)  # dimensionless
     icg_t15 = xres.isel(_time=-1)["[Cve_icg]"]
-    print("icg_t15", icg_t15)
+    # print("icg_t15", icg_t15)
     icg_max = xres["[Cve_icg]"].max(dim="_time")
-    print("icg_max", icg_max)
+    # print("icg_max", icg_max)
     icg_r15 = icg_t15/icg_max
-    print("icg_r15", icg_r15)
+    # print("icg_r15", icg_r15)
     samples["postop_r15_model"] = icg_r15.values
 
     return samples
+
 
 if __name__ == "__main__":
 
@@ -87,20 +80,16 @@ if __name__ == "__main__":
         age=55,
         f_cirrhosis=0,
         n=100,
+        resection_rates=np.linspace(0.1, 0.9, num=9)
     )
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     # print(samples.head())
 
-    resection_rates = np.linspace(0.1, 0.9, num=9)
-    xres, samples = simulate_samples(samples, simulator, resection_rates)
+    xres, samples = simulate_samples(samples)
+    samples = calculate_pk(samples=samples, xres=xres)
 
     print("-" * 80)
     print(xres)
-    samples = calculate_pk(samples=samples, xres=xres)
     print(samples.head())
-
-
-
-
-
+    print("-" * 80)
