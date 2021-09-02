@@ -8,14 +8,16 @@ import numpy as np
 from pathlib import Path
 import libsbml
 import json
-from scipy.stats import lognorm, uniform, norm
+from scipy.stats import lognorm
+
+from settings import icg_model_path
 
 logger = logging.getLogger(__name__)
 base_path = Path(__file__).parent
 
+
 # read parameters from SBML
-model_path = str(base_path / "model" / "icg_body_flat.xml")
-doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(model_path)
+doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(icg_model_path))
 model: libsbml.Model = doc.getModel()
 COBW = model.getParameter("COBW").getValue()
 FVli = model.getParameter("FVli").getValue()
@@ -32,7 +34,7 @@ with open(base_path / "data" / "cov_liver_volume_bloodflow.json", "r") as f_json
 
 
 def sample_liver_volume_bloodflow(samples: pd.DataFrame) -> pd.DataFrame:
-    """Adds liver volume and blood flor information to samples.
+    """Adds liver volume and blood flow information to samples.
 
     Changes samples in place.
     FIXME: extend to support 1D sampling if either volume of blood flow is given
@@ -61,13 +63,20 @@ def sample_liver_volume_bloodflow(samples: pd.DataFrame) -> pd.DataFrame:
     return samples
 
 
-def samples_for_individual(bodyweight: float, age: float, n: int = 100, random_seed: int = 42):
+def samples_for_individual(
+        bodyweight: float,
+        age: float,
+        f_cirrhosis: float,
+        n: int = 100,
+        resection_rates=None,
+        random_seed: int = 42,
+):
     """Sample data for given individual."""
     np.random.seed(random_seed)
 
     if age <= 40:
         ageclass = "18-40"
-    elif 40 < age <=65:
+    elif 40 < age <= 65:
         ageclass = "41-65"
     elif age > 65:
         ageclass = "66-84"
@@ -77,6 +86,7 @@ def samples_for_individual(bodyweight: float, age: float, n: int = 100, random_s
         "AGE": [age] * n,
         "AGECLASS": [ageclass] * n,
         "BMXWT": [bodyweight] * n,
+        "f_cirrhosis": [f_cirrhosis] * n,
     })
 
     # oatp
@@ -92,15 +102,15 @@ def samples_for_individual(bodyweight: float, age: float, n: int = 100, random_s
     samples = sample_liver_volume_bloodflow(samples=samples)
     samples["f_bloodflow"] = samples["LIVBFKG"]/(COBW * 60.0/1000.0 * FVli/1000)
 
+    # include resection rates in samples, i.e. in
+    # all individudals different resections are performed
+    if resection_rates is not None:
+        dfs = []
+        for rate in resection_rates:
+            df = samples.copy()
+            df['resection_rate'] = rate
+            dfs.append(df)
+
+        samples = pd.concat(dfs)
+
     return samples
-
-
-if __name__ == "__main__":
-    samples = samples_for_individual(
-        bodyweight=75,
-        age=55,
-        n=15,
-    )
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    print(samples)
