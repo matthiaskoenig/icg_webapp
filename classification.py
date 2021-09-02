@@ -44,7 +44,9 @@ def simulation(samples: pd.DataFrame, resection_rates: np.ndarray) -> pd.DataFra
 
         # FIXME replace with simulation
         df["resection_rate"] = rate
+        df["postop_pdr_model"] = np.linspace(rate, rate + 0.09, num=len(df))
         df["postop_r15_model"] = np.linspace(rate, rate + 0.09, num=len(df))
+
         dfs.append(df)
 
     return pd.concat(dfs)
@@ -60,7 +62,19 @@ def classification(classifier, samples: pd.DataFrame) -> pd.DataFrame:
 
 
 def figure(predictions):
-    """Boxplots for predictions."""
+    """Boxplots for predictions.
+
+    FIXME:
+    - histogram liver volume, liver blood flow, oatp1b3
+    - create boxplots of postop R15 ~ resection_rate
+    - create boxplots of postop PDR ~ resection_rate
+    - pimp the plots: larger fonts, bold, labels; show outliers (make sure)
+
+    # make interactive plot
+    - use altair
+    - (plotly)
+
+    """
 
     resection_rates = sorted(predictions.resection_rate.unique())
     n_rates = len(resection_rates)
@@ -123,3 +137,18 @@ if __name__ == "__main__":
 
     # figure boxplots
     figure(samples)
+
+
+    import altair as alt
+
+    chart1 = alt.Chart(samples).mark_boxplot().encode(
+        x='resection_rate:Q',
+        y='y_score:Q'
+    )
+    chart2 = alt.Chart(samples).mark_line().encode(
+        x='resection_rate:Q',
+        y='y_score:Q'
+    )
+    # update this:
+    # https://altair-viz.github.io/user_guide/generated/toplevel/altair.Chart.html?highlight=boxplot#altair.Chart.mark_boxplot
+    (chart1 + chart2).show()
