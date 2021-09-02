@@ -73,18 +73,36 @@ def boxplot(ax, data, k, rate, n_rates, ylabel):
 
 def figure_histograms(samples):
     figures = {}
-    labels = {
-        "FOATP1B3": "OATP1B3 [-]",
-        "LIVVOLKG": "Liver volume [ml/kg]",
-        "LIVBFKG": "Liver blood flow [ml/min/kg]",
+    infos = {
+        "FOATP1B3": {
+            "label": "OATP1B3 [-]",
+            "color": "tab:blue",
+            "xlim": [0, 6]
+        },
+        # "LIVVOLKG": "Liver volume [ml/kg]",
+        # "LIVBFKG": "Liver blood flow [ml/min/kg]",
+        "LIVVOL": {
+            "label": "Liver volume [ml]",
+            "color": "tab:orange",
+            "xlim": [500, 3000]
+        },
+        "LIVBF": {
+            "label": "Hepatic blood flow [ml/min]",
+            "color": "tab:red",
+            "xlim": [500, 3000]
+        },
     }
-    for key, label in labels.items():
+    for k, key in enumerate(infos):
+        info = infos[key]
         f, ax = plt.subplots(figsize=(6, 6))
-        ax.hist(samples[key], bins=15, label="Survivors", color="tab:blue", alpha=1, edgecolor="black", density=True)
-        ax.set_xlabel(label, fontdict=font)
-        ax.set_ylabel("Density", fontdict=font)
+        ax.hist(samples[key], bins=15, label="Survivors", color=info["color"],
+                alpha=0.9, edgecolor="black", density=False)
+        ax.set_xlabel(info["label"], fontdict=font)
+        ax.set_ylabel("Frequency", fontdict=font)
         ax.tick_params(axis="x", labelsize=15)
         ax.tick_params(axis="y", labelsize=15)
+        if info["xlim"]:
+            ax.set_xlim(info["xlim"])
         figures[key] = f
 
     return figures

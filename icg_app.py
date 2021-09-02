@@ -38,7 +38,7 @@ samples = st.sidebar.slider(
 
 st.markdown("### Patient")
 col1, col2, col3 = st.columns(3)
-col1.markdown("**Anthropometric information**")
+col1.markdown("**Anthropometric parameters**")
 
 bodyweight = col1.slider(
     "Body weight [kg]",
@@ -49,14 +49,38 @@ age = col1.slider(
     value=55, min_value=18, max_value=84, step=1
 )
 
-col2.markdown("**Cirrhosis degree**")
-# FIXME: categorial
-f_cirrhosis = col2.slider(
-    "Cirrhosis [-]",
-    value=0.0, min_value=0.0, max_value=0.9
-)
+col2.markdown("**Liver disease**")
 
-col3.markdown("**Liver volume**")
+
+def update_cpt():
+    if cpt == 'Healthy':
+        st.session_state.f_cirrhosis = 0.0
+    elif cpt == 'Mild (CPT A)':
+        st.session_state.f_cirrhosis = 0.41
+    elif cpt == 'Moderate (CPT B)':
+        st.session_state.f_cirrhosis = 0.72
+    elif cpt == 'Severe (CPT C)':
+        st.session_state.f_cirrhosis = 0.82
+
+
+cpt = col2.radio("CPT score", ('Healthy', 'Mild (CPT A)', 'Moderate (CPT B)', 'Severe (CPT C)'),
+                 on_change=update_cpt)
+if cpt == 'Healthy':
+    f_cirrhosis = 0.0
+elif cpt == 'Mild (CPT A)':
+    f_cirrhosis = 0.41
+elif cpt == 'Moderate (CPT B)':
+    f_cirrhosis = 0.72
+elif cpt == 'Severe (CPT C)':
+    f_cirrhosis = 0.82
+
+# f_cirrhosis = col2.slider(
+#     "Cirrhosis [-]",
+#     value=st.session_state.f_cirrhosis, min_value=0.0, max_value=0.9,
+#     # on_change=update_f_cirrhosis
+# )
+
+col3.markdown("**Liver parameters**")
 # FIXME: categorial
 liver_volume = col3.slider(
     "Liver volume [ml]",
@@ -93,9 +117,11 @@ st.markdown("### Personalized predictions")
 # figure_histograms
 fig_histograms = figure_histograms(data)
 col1, col2, col3 = st.columns(3)
+
 col1.pyplot(fig=fig_histograms["FOATP1B3"], clear_figure=False)
-col2.pyplot(fig=fig_histograms["LIVVOLKG"], clear_figure=False)
-col3.pyplot(fig=fig_histograms["LIVBFKG"], clear_figure=False)
+col2.pyplot(fig=fig_histograms["LIVVOL"], clear_figure=False)
+col3.pyplot(fig=fig_histograms["LIVBF"], clear_figure=False)
+
 
 # figure boxplots
 fig_boxplots = figure_boxplot(data)

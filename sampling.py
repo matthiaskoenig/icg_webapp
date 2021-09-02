@@ -103,6 +103,9 @@ def samples_for_individual(
     samples = sample_liver_volume_bloodflow(samples=samples)
     samples["f_bloodflow"] = samples["LIVBFKG"]/(COBW * 60.0/1000.0 * FVli/1000)
 
+    samples["LIVVOL"] = samples["LIVVOLKG"] * bodyweight
+    samples["LIVBF"] = samples["LIVBFKG"] * bodyweight
+
     # include resection rates in samples, i.e. in
     # all individudals different resections are performed
     if resection_rates is not None:
