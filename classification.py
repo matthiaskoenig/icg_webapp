@@ -167,20 +167,20 @@ if __name__ == "__main__":
     print(samples.head())
 
     # figure boxplots
-    figure_boxplot(samples)
-    figure_histograms(samples)
+    # figure_boxplot(samples)
+    # figure_histograms(samples)
 
     import altair as alt
 
-    chart1 = alt.Chart(samples).mark_boxplot().encode(
+    chart1 = alt.Chart(samples).mark_boxplot(size=35).encode(
         x='resection_rate:Q',
         y='y_score:Q'
+    ).configure_mark(
+        fill="white",
+        stroke="black"
     )
-    chart2 = alt.Chart(samples).mark_line().encode(
-        x='resection_rate:Q',
-        y='y_score:Q'
-    )
+
     # update this:
     # https://altair-viz.github.io/user_guide/generated/toplevel/altair.Chart.html?highlight=boxplot#altair.Chart.mark_boxplot
 
-    # (chart1 + chart2).show()
+    chart1.show()
