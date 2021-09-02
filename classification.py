@@ -8,9 +8,15 @@ import pandas as pd
 from pathlib import Path
 from sklearn.svm import SVC
 from matplotlib.gridspec import GridSpec
+from matplotlib import rcParams
 import matplotlib.pyplot as plt
 
 base_path = Path(__file__).parent
+
+font = {
+    "weight": "bold",
+    "size": 18
+}
 
 
 def fit_classifier():
@@ -61,14 +67,8 @@ def classification(classifier, samples: pd.DataFrame) -> pd.DataFrame:
     return samples
 
 
-def figure(predictions):
+def figure_boxplot(predictions):
     """Boxplots for predictions.
-
-    FIXME:
-    - histogram liver volume, liver blood flow, oatp1b3
-    - create boxplots of postop R15 ~ resection_rate
-    - create boxplots of postop PDR ~ resection_rate
-    - pimp the plots: larger fonts, bold, labels; show outliers (make sure)
 
     # make interactive plot
     - use altair
@@ -79,33 +79,64 @@ def figure(predictions):
     resection_rates = sorted(predictions.resection_rate.unique())
     n_rates = len(resection_rates)
 
-    f = plt.figure(figsize=(n_rates, 6))
     gs = GridSpec(1, n_rates)
     gs.update(wspace=0, hspace=0)
 
-    for k, rate in enumerate(resection_rates):
-        df = predictions[predictions.resection_rate == rate]
-        ax = f.add_subplot(gs[0:1, k:k + 1])
-        _ = boxplot(ax, df.y_score, k, rate, n_rates)
+    labels = {
+        "y_score": "Survival [-]",
+        "postop_r15_model": "Postoperative ICG-R15 [-]",
+        "postop_pdr_model": "Postoperative ICG-PDR [-]"
+    }
+
+    figures = {}
+    for key, ylabel in labels.items():
+        f = plt.figure(figsize=(n_rates, 6))
+        f.suptitle('Resection rate [-]', y=0.05, size=17, weight="bold")
+        for k, rate in enumerate(resection_rates):
+            df = predictions[predictions.resection_rate == rate]
+            ax = f.add_subplot(gs[0:1, k:k + 1])
+            _ = boxplot(ax, df[key], k, rate, n_rates, ylabel)
+        figures[key] = f
 
     plt.show()
-    return f
+    return figures
 
 
-def boxplot(ax, data, k, rate, n_rates):
-    ax.tick_params(axis="x", labelsize=9)
+def boxplot(ax, data, k, rate, n_rates, ylabel):
+    ax.tick_params(axis="x", labelsize=17)
+    ax.tick_params(axis="y", labelsize=17)
     if k != (n_rates-1):
         ax.spines['right'].set_visible(False)
     if k != 0:
         ax.spines['left'].set_visible(False)
         ax.get_yaxis().set_ticks([])
     if k == 0:
-        ax.set_ylabel("Survival [-]")
+        ax.set_ylabel(ylabel, fontdict=font)
 
     ax.set_ylim(top=1, bottom=0)
 
-    ax.boxplot(data, labels=[np.round(rate, decimals=1)], widths=0.9, showmeans=True)
+    ax.boxplot(data, labels=[np.round(rate, decimals=1)], widths=0.9, showmeans=True, showfliers=True)
     return ax
+
+
+def figure_histograms(samples):
+    figures = {}
+    labels = {
+        "FOATP1B3": "OATP1B3 [-]",
+        "LIVVOLKG": "Liver volume [ml/kg]",
+        "LIVBFKG": "Liver blood flow [ml/min/kg]",
+    }
+    for key, label in labels.items():
+        f, ax = plt.subplots(figsize=(6, 6))
+        ax.hist(samples[key], bins=15, label="Survivors", color="tab:blue", alpha=1, edgecolor="black", density=True)
+        ax.set_xlabel(label, fontdict=font)
+        ax.set_ylabel("Density", fontdict=font)
+        ax.tick_params(axis="x", labelsize=15)
+        ax.tick_params(axis="y", labelsize=15)
+        figures[key] = f
+
+    plt.show()
+    return figures
 
 
 classifier = fit_classifier()
@@ -136,8 +167,8 @@ if __name__ == "__main__":
     print(samples.head())
 
     # figure boxplots
-    figure(samples)
-
+    figure_boxplot(samples)
+    figure_histograms(samples)
 
     import altair as alt
 
@@ -151,4 +182,5 @@ if __name__ == "__main__":
     )
     # update this:
     # https://altair-viz.github.io/user_guide/generated/toplevel/altair.Chart.html?highlight=boxplot#altair.Chart.mark_boxplot
-    (chart1 + chart2).show()
+
+    # (chart1 + chart2).show()
