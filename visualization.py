@@ -98,7 +98,7 @@ if __name__ == "__main__":
     print(samples.head())
 
     # figure boxplots
-    # figure_boxplot(samples)
+    figure_boxplot(samples)
     # figure_histograms(samples)
 
     import altair as alt
