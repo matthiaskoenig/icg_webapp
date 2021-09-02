@@ -8,13 +8,21 @@
 age = 55  # [yr] (min 18, max 84)
 bodyweight = 75  # [kg] (min 30, max 140)
 # FIXME: alternative preoperative ICG-R15
-ctp = "healthy"  # [NA, healthy, A, B, C]
+ctp = "healthy"  # [healthy, A, B, C]
+f_cirrhosis =  [0, ]
 
-# FIXME: can be NA (handle this case in the sampling)
-liver_volume = 1.5  # [l] (min 0.2, max 3.0)
-# FIXME: can be NA (handle this case in the sampling)
-# FIXME: alternative cardiac output
-hepatic_bloodflow = 1.0  # [l/min] (min 0.2, max 3.0)
+cirrhosis_map = {
+    "Healthy": 0,
+    "CTP A (mild cirrhosis)": 0.4086734693877552,
+    "CTP B (moderate cirrhosis)": 0.7025510204081633,
+    "CTP C (severe cirrhosis)": 0.8173469387755102
+}
+#
+# # FIXME: can be NA (handle this case in the sampling)
+# liver_volume = 1.5  # [l] (min 0.2, max 3.0)
+# # FIXME: can be NA (handle this case in the sampling)
+# # FIXME: alternative cardiac output
+# hepatic_bloodflow = 1.0  # [l/min] (min 0.2, max 3.0)
 
 # Sampling:
 # Sample 100 representation of the individual

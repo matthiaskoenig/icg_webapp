@@ -119,6 +119,7 @@ if __name__ == "__main__":
     samples = samples_for_individual(
         bodyweight=75,
         age=55,
+        f_cirrhosis=0,
         n=15,
     )
     print("-" * 80)

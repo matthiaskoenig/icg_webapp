@@ -61,7 +61,11 @@ def sample_liver_volume_bloodflow(samples: pd.DataFrame) -> pd.DataFrame:
     return samples
 
 
-def samples_for_individual(bodyweight: float, age: float, n: int = 100, random_seed: int = 42):
+def samples_for_individual(
+        bodyweight: float,
+        age: float,
+        f_cirrhosis: float,
+        n: int = 100, random_seed: int = 42):
     """Sample data for given individual."""
     np.random.seed(random_seed)
 
@@ -77,6 +81,7 @@ def samples_for_individual(bodyweight: float, age: float, n: int = 100, random_s
         "AGE": [age] * n,
         "AGECLASS": [ageclass] * n,
         "BMXWT": [bodyweight] * n,
+        "f_cirrhosis": [f_cirrhosis] * n,
     })
 
     # oatp
