@@ -38,7 +38,7 @@ def figure_boxplot(predictions):
     labels = {
         "y_score": "Survival [-]",
         "postop_r15_model": "Postoperative ICG-R15 [-]",
-        "postop_pdr_model": "Postoperative ICG-PDR [-]"
+        # "postop_pdr_model": "Postoperative ICG-PDR [-]"
     }
 
     figures = {}
@@ -99,19 +99,27 @@ if __name__ == "__main__":
 
     # figure boxplots
     figure_boxplot(samples)
-    # figure_histograms(samples)
+    figure_histograms(samples)
 
     import altair as alt
 
     chart1 = alt.Chart(samples).mark_boxplot(size=35).encode(
-        x='resection_rate:Q',
-        y='y_score:Q'
-    ).configure_mark(
-        fill="white",
-        stroke="black"
+        x=alt.X('resection_rate:Q', axis=alt.Axis(format='%', title='Resection rate')),
+        y=alt.Y('y_score:Q', axis=alt.Axis(format='%', title='Survival'))
     )
+
+    chart2 = alt.Chart(samples).mark_tick(color="red", width=35).encode(
+        x='resection_rate:Q',
+        y='mean(y_score)',
+        tooltip="mean(y_score)",
+    ).interactive()
+
+    charts = alt.layer(chart1, chart2).properties(
+        title="Survival probabilities"
+    ).configure_mark(fill="white", stroke="black")
 
     # update this:
     # https://altair-viz.github.io/user_guide/generated/toplevel/altair.Chart.html?highlight=boxplot#altair.Chart.mark_boxplot
 
-    chart1.show()
+    # (chart1 + chart2).show()
+    charts.show()
