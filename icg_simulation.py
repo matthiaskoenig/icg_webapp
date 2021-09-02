@@ -26,7 +26,7 @@ simulator = load_model(icg_model_path)
 
 
 @timeit
-def simulate_samples(samples, simulator, resection_rates: np.ndarray) -> xr.Dataset:
+def simulate_samples(samples, resection_rates: np.ndarray) -> xr.Dataset:
     """Simulate model."""
     # include resection rates in samples
     dfs = []

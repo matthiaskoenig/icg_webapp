@@ -31,6 +31,7 @@ def fit_classifier():
     classifier.fit(X=X, y=y)
     return classifier
 
+classifier = fit_classifier()
 
 def simulation(samples: pd.DataFrame, resection_rates: np.ndarray) -> pd.DataFrame:
     """Performs model simulations and calculate pharmacokinetic parameters."""
@@ -52,7 +53,7 @@ def simulation(samples: pd.DataFrame, resection_rates: np.ndarray) -> pd.DataFra
     return pd.concat(dfs)
 
 
-def classification(classifier, samples: pd.DataFrame) -> pd.DataFrame:
+def classification(samples: pd.DataFrame) -> pd.DataFrame:
     """Classify samples."""
     predict_X = np.array([samples["postop_r15_model"]]).T
     samples["y_pred"] = classifier.predict(predict_X)
@@ -108,7 +109,7 @@ def boxplot(ax, data, k, rate, n_rates):
     return ax
 
 
-classifier = fit_classifier()
+
 
 if __name__ == "__main__":
     pd.set_option('display.max_rows', None)

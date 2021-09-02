@@ -1,5 +1,6 @@
 from typing import Dict
 
+import numpy as np
 import streamlit as st
 import xarray
 import pandas as pd
@@ -10,27 +11,10 @@ from sbmlsim.simulation import Timecourse, TimecourseSim
 from sbmlsim.simulator import SimulatorSerial as Simulator
 
 from pathlib import Path
-icg_model_path = Path(__file__).parent / "model" / "icg_body_flat.xml"
 
-
-def load_model(model_path: Path) -> Simulator:
-    """Load model."""
-    return Simulator(model_path)
-
-
-simulator = load_model(icg_model_path)
-
-
-def simulate(start: float, end: float, steps: int, changes: Dict) -> xarray.Dataset:
-    """Simulate model."""
-    tc_sim = TimecourseSim(
-        [
-            Timecourse(start=start, end=end, steps=int(steps),
-                       changes=changes)
-         ]
-    )
-    return simulator.run_timecourse(tc_sim)
-
+from classification import classification, figure
+from icg_simulation import simulate_samples, calculate_pk
+from sampling import samples_for_individual
 
 st.sidebar.title('Settings')
 st.sidebar.markdown("## Integration")
@@ -48,6 +32,30 @@ icg_dose = st.sidebar.slider("ICG Dose [mg]", value=10, min_value=0, max_value=2
 Personalized prediction of survival after hepatectomy.
 '''
 
+samples = samples_for_individual(
+    bodyweight=75,
+    age=55,
+    f_cirrhosis=0.4,
+    n=300,
+)
+
+
+resection_rates = np.linspace(0.1, 0.9, num=9)
+xres, samples = simulate_samples(samples, resection_rates)
+
+print("-" * 80)
+print(xres)
+samples = calculate_pk(samples=samples, xres=xres)
+print(samples.head())
+
+# classification
+samples = classification(samples=samples,)
+
+
+# figure boxplots
+figure(samples)
+
+
 # st.image(
 #     image="./model/icg_body.png",
 #     width=600,
@@ -61,36 +69,6 @@ Personalized prediction of survival after hepatectomy.
 #             "subsequently excreted in the feces. No metabolism of ICG occurs in "
 #             "the liver.")
 
-'''
-## Results
-'''
-xr = simulate(start=0, end=endtime, steps=steps, changes={"IVDOSE_icg": icg_dose})
-# print(xr)
-
-# select simulation results
-selections = ["time", "[Cve_icg]", "[Car_icg]"]
-data = [xr[key].values[:, 0] for key in selections]
-df = pd.DataFrame(dict(zip(selections, data)))
-# print(df.head(10))
-
-fig, (ax1, ax2) = plt.subplots(figsize=(7, 5), nrows=1, ncols=2)
-ax1.plot(df.time, df["[Cve_icg]"], '-o', color="blue", alpha=0.7)
-ax1.plot(df.time, df["[Car_icg]"], '-o', color="black", alpha=0.7)
-ax1.set_xlabel("time [min]")
-ax1.set_ylabel("concentration [mmole/min]")
-ax2.plot(df["[Car_icg]"], df["[Cve_icg]"], '-o', color="blue", alpha=0.7)
-
-ax2.set_xlim(0, 0.10)
-for ax in [ax1, ax2]:
-    ax.set_ylim(0, 0.10)
-    ax.grid(True)
-
-st.pyplot(fig=fig, clear_figure=False)
-
-# raw data
-if st.checkbox('Show simulation data'):
-    st.subheader('Raw data')
-    st.write(df)
 
 '''
 ## References
