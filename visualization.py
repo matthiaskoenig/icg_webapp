@@ -36,7 +36,8 @@ def figure_boxplot(predictions):
     gs.update(wspace=0, hspace=0)
 
     labels = {
-        "y_score": "Survival [-]",
+        "y_score": "Survival probability [-]",
+        "y_pred": "Survival [-]",
         "postop_r15_model": "Postoperative ICG-R15 [-]",
         # "postop_pdr_model": "Postoperative ICG-PDR [-]"
     }

@@ -31,6 +31,12 @@ col2.caption(
     "the liver."
 )
 
+st.markdown("### Algorithm")
+col1, col2, col3 = st.columns(3)
+n_samples = col1.slider(
+    "Number of samples",
+    value=100, min_value=50, max_value=1000, step=50
+)
 
 f_cirrhosis = 0.0
 # with st.form("my_form"):
@@ -94,7 +100,7 @@ samples = samples_for_individual(
     liver_bloodflow=liver_bloodflow,
     liver_volume=liver_volume,
     f_cirrhosis=f_cirrhosis,
-    n=samples,
+    n=n_samples,
     resection_rates=resection_rates
 )
 
@@ -126,13 +132,9 @@ col1, col2 = st.columns(2)
 col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False, bbox_inches="tight")
 col2.pyplot(fig=fig_boxplots["y_score"], clear_figure=False)
 
-st.markdown("### Algorithm")
-col1, col2, col3 = st.columns(3)
-col1.markdown("**Sampling**")
-samples = col1.slider(
-    "samples [-]",
-    value=100, min_value=50, max_value=1000, step=50
-)
+st.pyplot(fig=fig_boxplots["y_pred"], clear_figure=False)
+
+
 
 '''
 ## References

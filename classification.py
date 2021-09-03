@@ -7,7 +7,8 @@ from pathlib import Path
 from sklearn.svm import SVC
 
 from sampling import samples_for_individual
-from simulation import simulate_samples, calculate_pk
+from settings import icg_model_path
+from simulation import simulate_samples, calculate_pk, load_model
 
 base_path = Path(__file__).parent
 
@@ -37,7 +38,7 @@ classifier = fit_classifier()
 def classification(samples: pd.DataFrame) -> pd.DataFrame:
     """Classify samples."""
     predict_X = np.array([samples["postop_r15_model"]]).T
-    samples["y_pred"] = classifier.predict(predict_X)
+    samples["y_pred"] = classifier.predict(predict_X).astype(int)
     samples["y_score"] = classifier.predict_proba(predict_X)[:, 1]
 
     return samples
@@ -53,7 +54,8 @@ def example_classification(f_cirrhosis=0) -> pd.DataFrame():
         resection_rates=np.linspace(0.1, 0.9, num=9)
     )
 
-    xres, samples = simulate_samples(samples)
+    simulator = load_model(model_path=icg_model_path)
+    xres, samples = simulate_samples(samples, simulator)
     samples = calculate_pk(samples=samples, xres=xres)
 
     samples = classification(samples=samples)
