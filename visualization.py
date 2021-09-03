@@ -95,6 +95,7 @@ def figure_histograms(samples):
     for k, key in enumerate(infos):
         info = infos[key]
         f, ax = plt.subplots(figsize=(6, 6))
+
         ax.hist(samples[key], bins=15, label="Survivors", color=info["color"],
                 alpha=0.9, edgecolor="black", density=False)
         ax.set_xlabel(info["label"], fontdict=font)

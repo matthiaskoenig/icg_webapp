@@ -8,7 +8,7 @@ import numpy as np
 from pathlib import Path
 import libsbml
 import json
-from scipy.stats import lognorm
+from scipy.stats import lognorm, norm
 
 from settings import icg_model_path
 
@@ -33,7 +33,8 @@ with open(base_path / "data" / "cov_liver_volume_bloodflow.json", "r") as f_json
         info['cov'] = np.array(info['cov'])
 
 
-def sample_liver_volume_bloodflow(samples: pd.DataFrame) -> pd.DataFrame:
+def sample_liver_volume_bloodflow(samples: pd.DataFrame, liver_volume: float = np.NaN,
+                                  liver_bloodflow: float = np.NaN) -> pd.DataFrame:
     """Adds liver volume and blood flow information to samples.
 
     Changes samples in place.
@@ -42,23 +43,44 @@ def sample_liver_volume_bloodflow(samples: pd.DataFrame) -> pd.DataFrame:
     # read covariance information
     cov_info = cov_liver_volume_bloodflow
 
-    livvolkg = []
-    livbfkg = []
+    livvolkg_values = []
+    livbfkg_values = []
 
     for _, row in samples.iterrows():
         group = row["AGECLASS"]
         dist_info = cov_info[group]
+
 
         vol_bf = np.random.multivariate_normal(
             (dist_info["volbw_mean"], dist_info["bfbw_mean"]),
             cov=dist_info["cov"],
             size=1
         )
-        livvolkg.append(vol_bf[0][0])
-        livbfkg.append(vol_bf[0][1])
+        livvolkg = vol_bf[0][0]
+        livbfkg = vol_bf[0][1]
 
-    samples["LIVVOLKG"] = livvolkg
-    samples["LIVBFKG"] = livbfkg
+        # FIXME: necessary to use the conditional normal distributions
+        # see: https://stackoverflow.com/questions/38713746/python-numpy-conditional-simulation-from-a-multivatiate-distribution
+        # see https://en.wikipedia.org/wiki/Multivariate_normal_distribution: conditional distributions
+        if liver_volume and not np.isnan(liver_volume):
+            # assume small variation around provided value (due to measurement variation)
+            livvolkg = norm.rvs(
+                 loc=liver_volume / row["BMXWT"],
+                 scale=0.05 * liver_volume / row["BMXWT"],
+            )
+
+        if liver_bloodflow and not np.isnan(liver_bloodflow):
+            # assume small variation around provided value (due to measurement variation
+            livbfkg = norm.rvs(
+                loc=liver_bloodflow / row["BMXWT"],
+                scale=0.05 * liver_bloodflow / row["BMXWT"],
+            )
+
+        livvolkg_values.append(livvolkg)
+        livbfkg_values.append(livbfkg)
+
+    samples["LIVVOLKG"] = livvolkg_values
+    samples["LIVBFKG"] = livbfkg_values
 
     return samples
 
@@ -66,7 +88,9 @@ def sample_liver_volume_bloodflow(samples: pd.DataFrame) -> pd.DataFrame:
 def samples_for_individual(
         bodyweight: float,
         age: float,
-        f_cirrhosis: float,
+        liver_volume: float = np.NaN,
+        liver_bloodflow: float = np.NaN,
+        f_cirrhosis: float = 0.0,
         n: int = 100,
         resection_rates: np.ndarray = None,
         random_seed: int = None,
@@ -100,7 +124,11 @@ def samples_for_individual(
     samples["IVDOSE_icg"] = 0.5 * samples["BMXWT"]
 
     # liver volume and hbf
-    samples = sample_liver_volume_bloodflow(samples=samples)
+    samples = sample_liver_volume_bloodflow(
+        samples=samples,
+        liver_volume=liver_volume,
+        liver_bloodflow=liver_bloodflow,
+    )
     samples["f_bloodflow"] = samples["LIVBFKG"]/(COBW * 60.0/1000.0 * FVli/1000)
 
     samples["LIVVOL"] = samples["LIVVOLKG"] * bodyweight
