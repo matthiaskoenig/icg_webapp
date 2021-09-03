@@ -37,7 +37,7 @@ def figure_boxplot(predictions):
 
     labels = {
         "y_score": "Survival probability [-]",
-        "y_pred": "Survival [-]",
+        # "y_pred": "Survival [-]",
         "postop_r15_model": "Postoperative ICG-R15 [-]",
         # "postop_pdr_model": "Postoperative ICG-PDR [-]"
     }

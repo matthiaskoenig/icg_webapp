@@ -13,7 +13,6 @@ from visualization import figure_boxplot, figure_histograms
 
 '''
 # Physiological based pharmacokinetics model of indocyanine green
-## Personalized prediction of survival after hepatectomy
 '''
 col1, col2 = st.columns(2)
 col1.image(
@@ -30,13 +29,16 @@ col2.caption(
     "subsequently excreted in the feces. No metabolism of ICG occurs in "
     "the liver."
 )
-
-st.markdown("### Algorithm")
-col1, col2, col3 = st.columns(3)
-n_samples = col1.slider(
-    "Number of samples",
-    value=100, min_value=50, max_value=1000, step=50
-)
+'''
+## Personalized prediction of survival after hepatectomy
+'''
+# st.markdown("### Algorithm")
+# col1, col2, col3 = st.columns(3)
+# n_samples = col1.slider(
+#     "Number of samples",
+#     value=100, min_value=50, max_value=1000, step=50
+# )
+n_samples = 100
 
 f_cirrhosis = 0.0
 # with st.form("my_form"):
@@ -44,7 +46,7 @@ st.markdown("### Patient")
 
 col1, col2, col3 = st.columns(3)
 col1.markdown("**Liver disease**")
-cpt = col1.radio("CPT score", ('Healthy', 'Mild (CPT A)', 'Moderate (CPT B)', 'Severe (CPT C)'))
+cpt = col1.radio("Liver cirrhosis", ('No cirrhosis', 'Mild (CPT A)', 'Moderate (CPT B)', 'Severe (CPT C)'))
 
 col2.markdown("**Anthropometric parameters**")
 
@@ -82,7 +84,7 @@ liver_bloodflow = col3.number_input(
 # submitted = st.form_submit_button("Submit")
 # if submitted:
 #     print("submitted")
-if cpt == 'Healthy':
+if cpt == 'No cirrhosis':
     f_cirrhosis = 0.0
 elif cpt == 'Mild (CPT A)':
     f_cirrhosis = 0.41
@@ -131,8 +133,6 @@ fig_boxplots = figure_boxplot(data)
 col1, col2 = st.columns(2)
 col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False, bbox_inches="tight")
 col2.pyplot(fig=fig_boxplots["y_score"], clear_figure=False)
-
-st.pyplot(fig=fig_boxplots["y_pred"], clear_figure=False)
 
 
 
