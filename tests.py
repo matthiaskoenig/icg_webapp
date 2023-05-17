@@ -1,12 +1,11 @@
 """Tests for the web app."""
 
-import pytest
 import numpy as np
 import pandas as pd
-import xarray as xr
 
 from sampling import samples_for_individual
-from simulation import simulate_samples, calculate_pk
+from simulation import simulate_samples, calculate_pk, load_model
+from settings import icg_model_path
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -59,7 +58,8 @@ def test_simulate() -> None:
         resection_rates=np.linspace(0.1, 0.9, num=9)
     )
 
-    xres, samples = simulate_samples(samples)
+    simulator = load_model(model_path=icg_model_path)
+    xres, samples = simulate_samples(simulator=simulator, samples=samples)
     assert isinstance(samples, pd.DataFrame)
 
     samples = calculate_pk(samples=samples, xres=xres)
