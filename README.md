@@ -1,12 +1,12 @@
-# icg_webapp
-Streamlit ICG webapp
+# Indocyanine Green ICG liver function webapp
+Streamlit web application for the indocyanine green model.
 
 ## Setup environment
 To run the example applications install the requirements 
 ```
 cd icg_webapp
-mkvirtualenv icg_webapp --python=python3
-(icg_webapp) pip install -r requirements.txt
+mkvirtualenv icg_webapp --python=python3.9
+(icg_webapp) pip install -r requirements.txt --upgrade
 ```
 
 ## Run application
@@ -15,16 +15,19 @@ To run the app use:
 streamlit run icg_app.py
 ``` 
 
+
+
 ## Misc documentation
-# Inputs:
-# - age
-# - body weight
-# - CPT score/preoperative ICG-R15 -> f_cirrhosis (response curve; response curve mappings)
-# - liver volume (NA)
-# - liver blood flow (NA)/cardiac output
+Inputs:
+- age
+- body weight
+- CPT score/preoperative ICG-R15 -> f_cirrhosis (response curve; response curve mappings)
+- liver volume (NA)
+- liver blood flow (NA)/cardiac output
 
 age = 55  # [yr] (min 18, max 84)
 bodyweight = 75  # [kg] (min 30, max 140)
+
 # FIXME: alternative preoperative ICG-R15
 ctp = "healthy"  # [healthy, A, B, C]
 f_cirrhosis =  [0, ]
@@ -66,4 +69,3 @@ resection_rate = 0.5
 # translate in survival
 # - => post-operative ICG-R15 can be tranlated into probability of survival via 1D classification model
 # - plot survival probability vs resection
-
