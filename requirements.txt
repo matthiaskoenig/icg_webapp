@@ -11,3 +11,4 @@ pytest>=8.1.1
 python-libsbml>=5.20.2
 xarray>=2024.3.0
 rich>=13.7.1
+ipython>=8.23.0

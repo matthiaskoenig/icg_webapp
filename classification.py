@@ -55,9 +55,8 @@ def example_classification(f_cirrhosis=0) -> pd.DataFrame():
     )
 
     simulator = load_model(model_path=icg_model_path)
-    xres, samples = simulate_samples(samples, simulator)
-    samples = calculate_icg_r15(samples=samples, xres=xres)
-
+    dfs = simulate_samples(samples, simulator)
+    samples = calculate_icg_r15(samples=samples, dfs=dfs)
     samples = classification(samples=samples)
     return samples
 

@@ -10,10 +10,10 @@ from settings import icg_model_path
 import sampling
 from simulation import simulate_samples, calculate_icg_r15, load_model
 
-# from classification import classification
-# from visualization import figure_boxplot, figure_histograms
+from classification import classification
+from visualization import figure_boxplot, figure_histograms
 
-# np.random.seed(42)
+np.random.seed(42)
 
 '''
 # Physiological based pharmacokinetics model of indocyanine green
@@ -88,34 +88,34 @@ samples = sampling.samples_for_individual(
     resection_rates=resection_rates
 )
 
-#
-# #@st.cache
-# def simulate_and_classify(samples):
-#     """Simulate and classify the subject."""
-#     data = samples.copy()
-#     xres, data = simulate_samples(data, simulator)
-#     data = calculate_pk(samples=data, xres=xres)
-#     data = classification(samples=data)
-#     return data
-#
-# data = simulate_and_classify(samples)
-#
-# st.markdown("### Personalized predictions")
-# # figure_histograms
-# fig_histograms = figure_histograms(data)
-# col1, col2, col3 = st.columns(3)
-#
-# col1.pyplot(fig=fig_histograms["FOATP1B3"], clear_figure=False)
-# col2.pyplot(fig=fig_histograms["LIVVOL"], clear_figure=False)
-# col3.pyplot(fig=fig_histograms["LIVBF"], clear_figure=False)
-#
-#
-# # figure boxplots
-# fig_boxplots = figure_boxplot(data)
-#
-# col1, col2 = st.columns(2)
-# col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False, bbox_inches="tight")
-# col2.pyplot(fig=fig_boxplots["y_score"], clear_figure=False)
+
+#@st.cache
+def simulate_and_classify(samples):
+    """Simulate and classify the subject."""
+    data = samples.copy()
+    dfs = simulate_samples(data, simulator)
+    data = calculate_icg_r15(samples=data, dfs=dfs)
+    data = classification(samples=data)
+    return data
+
+data = simulate_and_classify(samples)
+
+st.markdown("### Personalized predictions")
+# figure_histograms
+fig_histograms = figure_histograms(data)
+col1, col2, col3 = st.columns(3)
+
+col1.pyplot(fig=fig_histograms["FOATP1B3"], clear_figure=False)
+col2.pyplot(fig=fig_histograms["LIVVOL"], clear_figure=False)
+col3.pyplot(fig=fig_histograms["LIVBF"], clear_figure=False)
+
+
+# figure boxplots
+fig_boxplots = figure_boxplot(data)
+
+col1, col2 = st.columns(2)
+col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False, bbox_inches="tight")
+col2.pyplot(fig=fig_boxplots["y_score"], clear_figure=False)
 
 
 # --- References ---
