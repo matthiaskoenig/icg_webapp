@@ -5,7 +5,7 @@ Streamlit web application for the indocyanine green model.
 To run the example applications install the requirements 
 ```
 cd icg_webapp
-mkvirtualenv icg_webapp --python=python3.9
+mkvirtualenv icg_webapp --python=python3.11
 (icg_webapp) pip install -r requirements.txt --upgrade
 ```
 
