@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from sampling import samples_for_individual
-from simulation import simulate_samples, calculate_pk, load_model
+from simulation import simulate_samples, calculate_icg_r15, load_model
 from settings import icg_model_path
 
 pd.set_option('display.max_rows', None)
@@ -62,6 +62,6 @@ def test_simulate() -> None:
     xres, samples = simulate_samples(simulator=simulator, samples=samples)
     assert isinstance(samples, pd.DataFrame)
 
-    samples = calculate_pk(samples=samples, xres=xres)
+    samples = calculate_icg_r15(samples_df=samples, xres=xres)
     assert isinstance(samples, pd.DataFrame)
     assert "postop_r15_model" in samples.columns

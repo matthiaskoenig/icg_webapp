@@ -1,94 +1,107 @@
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 import pandas as pd
 import numpy as np
+import roadrunner
 import xarray as xr
-
-from sbmlsim.utils import timeit
-from sbmlsim.simulation import Timecourse, TimecourseSim, ScanSim, Dimension
-from sbmlsim.simulator import SimulatorSerial as Simulator
-# from sbmlsim.simulator.simulation_ray import SimulatorParallel as Simulator
+from console import console
 
 from settings import icg_model_path
 from sampling import samples_for_individual
 
 
-def load_model(model_path: Path) -> Simulator:
+def load_model(model_path: Path) -> roadrunner.RoadRunner:
     """Load model."""
-    simulator = Simulator(
-        model_path,
-        absolute_tolerance=1e-8,
-        relative_tolerance=1e-8,
-    )
-    simulator.set_timecourse_selections(["time", "[Cve_icg]"])
-    return simulator
+    r: roadrunner.RoadRunner = roadrunner.RoadRunner(str(model_path))
+    r.timeCourseSelections = ["time", "[Cve_icg]"]
+    return r
 
 
-@timeit
-def simulate_samples(samples: pd.DataFrame, simulator) -> Tuple[xr.Dataset, pd.DataFrame]:
-    """Simulate sample individuals with given simulator.
+units = {
+    "IVDOSE_icg":  'mg',
+    "LI__f_oatp1b3":  'dimensionless',
+    "BW": 'kg',
+    "FVli": 'ml/kg',
+    "f_bloodflow":  'dimensionless',
+    "f_tissue_loss":  'dimensionless',
+    "f_shunts":  'dimensionless',
+    "resection_rate":  'dimensionless',
+}
+
+def simulate_samples(samples: pd.DataFrame, r: roadrunner.RoadRunner) -> List[pd.DataFrame]:
+    """Simulate sample individuals with roadrunner.
 
     Samples contain multiple samples per individual and possibly multiple
     resection rates.
     """
-    Q_ = simulator.Q_
-    tc = Timecourse(
-        start=0, end=15, steps=100,
-        changes={}
-    )
+
     changes: Dict = {
-        "IVDOSE_icg": Q_(np.array(samples['IVDOSE_icg']), 'mg'),
-        "LI__f_oatp1b3": Q_(np.array(samples['FOATP1B3']), 'dimensionless'),
-        "BW": Q_(np.array(samples['BMXWT']), 'kg'),
-        "FVli": Q_(np.array(samples['LIVVOLKG']), 'ml/kg'),
-        "f_bloodflow": Q_(np.array(samples['f_bloodflow']), 'dimensionless'),
-        "f_tissue_loss": Q_(np.array(samples['f_cirrhosis']), 'dimensionless'),
-        "f_shunts": Q_(np.array(samples['f_cirrhosis']), 'dimensionless'),
-        "resection_rate": Q_(np.array(samples['resection_rate']), 'dimensionless'),
+        "IVDOSE_icg": np.array(samples['IVDOSE_icg']),  # 'mg',
+        "LI__f_oatp1b3": np.array(samples['FOATP1B3']),  # 'dimensionless'),
+        "BW": np.array(samples['BMXWT']),  # 'kg'
+        "FVli": np.array(samples['LIVVOLKG'])/1000,  # 'ml/kg' -> 'l/kg'
+        "f_bloodflow": np.array(samples['f_bloodflow']),  # 'dimensionless'
+        "f_tissue_loss": np.array(samples['f_cirrhosis']),  # 'dimensionless'
+        "f_shunts": np.array(samples['f_cirrhosis']),  # 'dimensionless'
+        "resection_rate": np.array(samples['resection_rate']),  # 'dimensionless'
     }
-    tc_scan = ScanSim(
-        simulation=TimecourseSim([tc]),
-        dimensions=[
-            Dimension("samples", changes=changes),
-        ]
-    )
-    xres = simulator.run_scan(tc_scan)
-    return xres, samples
+
+    # simulate and store in xresult structure
+    xres = []
+
+    n_samples = changes["IVDOSE_icg"].size
+    # console.print(f"Number of samples: {n_samples}")
+    for k in range(n_samples):
+        # console.rule(f"sample: {k}", align="left", style="white")
+        r.resetAll()
+        for key, values in changes.items():
+            value = float(values[k])
+            # console.print(f"{key} = {value} {units[key]}")
+            r.setValue(key, value)
+        s = r.simulate(start=0, end=15, steps=100)
+        df = pd.DataFrame(s, columns=s.colnames)
+        xres.append(df)
+    # xres = simulator.run_scan(tc_scan)
+    return xres
 
 
-@timeit
-def calculate_pk(samples, xres) -> pd.DataFrame:
+def calculate_icg_r15(samples_df: pd.DataFrame, dfs: List[pd.DataFrame]) -> pd.DataFrame:
     """Calculates pk from results and adds to the model."""
 
-    # ICG-R15
-    #  icg(t=15)/max(icg)  # dimensionless
-    icg_t15 = xres.isel(_time=-1)["[Cve_icg]"]
-    # print("icg_t15", icg_t15)
-    icg_max = xres["[Cve_icg]"].max(dim="_time")
-    # print("icg_max", icg_max)
-    icg_r15 = icg_t15/icg_max
-    # print("icg_r15", icg_r15)
-    samples["postop_r15_model"] = icg_r15.values
+    icg_r15 = np.zeros_like(samples_df["IVDOSE_icg"])
+    for k, df in enumerate(dfs):
+        # ICG-R15
+        #  icg(t=15)/max(icg)  # dimensionless
+        icg = df["[Cve_icg]"].values
+        icg_t15 = icg[-1]  # last concentration
+        # print("icg_t15", icg_t15)
+        icg_max = icg.max()
+        # print("icg_max", icg_max)
+        icg_r15[k] = icg_t15/icg_max
+        # print("icg_r15", icg_r15)
 
-    return samples
+    samples_df["postop_r15_model"] = icg_r15
+    return samples_df
 
 
 if __name__ == "__main__":
 
-    samples = samples_for_individual(
+    samples_df: pd.DataFrame = samples_for_individual(
         bodyweight=75,
         age=55,
         f_cirrhosis=0,
         n=100,
         resection_rates=np.linspace(0.1, 0.9, num=9)
     )
-    simulator = load_model(model_path=icg_model_path)
+    print(samples_df)
+    console.rule(style="white")
 
-    xres, samples = simulate_samples(samples, simulator=simulator)
-    samples = calculate_pk(samples=samples, xres=xres)
+    r = load_model(model_path=icg_model_path)
+    dfs = simulate_samples(samples_df, r=r)
+    samples_df = calculate_icg_r15(samples_df=samples_df, dfs=dfs)
 
-    print("-" * 80)
-    print(xres)
-    print(samples.head())
-    print("-" * 80)
+    console.rule(style="white")
+    # print(xres)
+    print(samples_df.head())
+    console.rule(style="white")
