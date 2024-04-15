@@ -66,11 +66,10 @@ def simulate_samples(samples: pd.DataFrame, r: roadrunner.RoadRunner) -> List[pd
     return xres
 
 
-
-def calculate_icg_r15(samples: Dict, dfs: List[pd.DataFrame]) -> pd.DataFrame:
+def calculate_icg_r15(samples_df: pd.DataFrame, dfs: List[pd.DataFrame]) -> pd.DataFrame:
     """Calculates pk from results and adds to the model."""
 
-    icg_r15 = np.zeros_like(samples["IVDOSE_icg"])
+    icg_r15 = np.zeros_like(samples_df["IVDOSE_icg"])
     for k, df in enumerate(dfs):
         # ICG-R15
         #  icg(t=15)/max(icg)  # dimensionless
@@ -82,27 +81,27 @@ def calculate_icg_r15(samples: Dict, dfs: List[pd.DataFrame]) -> pd.DataFrame:
         icg_r15[k] = icg_t15/icg_max
         # print("icg_r15", icg_r15)
 
-    samples["postop_r15_model"] = icg_r15
-    return samples
+    samples_df["postop_r15_model"] = icg_r15
+    return samples_df
 
 
 if __name__ == "__main__":
 
-    samples = samples_for_individual(
+    samples_df: pd.DataFrame = samples_for_individual(
         bodyweight=75,
         age=55,
         f_cirrhosis=0,
         n=100,
         resection_rates=np.linspace(0.1, 0.9, num=9)
     )
-    print(samples)
+    print(samples_df)
     console.rule(style="white")
 
     r = load_model(model_path=icg_model_path)
-    dfs = simulate_samples(samples, r=r)
-    samples = calculate_icg_r15(samples=samples, dfs=dfs)
+    dfs = simulate_samples(samples_df, r=r)
+    samples_df = calculate_icg_r15(samples_df=samples_df, dfs=dfs)
 
     console.rule(style="white")
     # print(xres)
-    print(samples.head())
+    print(samples_df.head())
     console.rule(style="white")

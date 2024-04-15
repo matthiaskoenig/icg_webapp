@@ -62,6 +62,6 @@ def test_simulate() -> None:
     xres, samples = simulate_samples(simulator=simulator, samples=samples)
     assert isinstance(samples, pd.DataFrame)
 
-    samples = calculate_icg_r15(samples=samples, xres=xres)
+    samples = calculate_icg_r15(samples_df=samples, xres=xres)
     assert isinstance(samples, pd.DataFrame)
     assert "postop_r15_model" in samples.columns

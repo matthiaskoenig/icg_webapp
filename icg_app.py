@@ -94,7 +94,7 @@ def simulate_and_classify(samples):
     """Simulate and classify the subject."""
     data = samples.copy()
     dfs = simulate_samples(data, simulator)
-    data = calculate_icg_r15(samples=data, dfs=dfs)
+    data = calculate_icg_r15(samples_df=data, dfs=dfs)
     data = classification(samples=data)
     return data
 

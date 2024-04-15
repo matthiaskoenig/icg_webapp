@@ -1,6 +1,8 @@
 """
 - Vary resection rate & create boxplot survival ~ resection rate;
 """
+from typing import Dict
+
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -56,9 +58,9 @@ def example_classification(f_cirrhosis=0) -> pd.DataFrame():
 
     simulator = load_model(model_path=icg_model_path)
     dfs = simulate_samples(samples, simulator)
-    samples = calculate_icg_r15(samples=samples, dfs=dfs)
-    samples = classification(samples=samples)
-    return samples
+    samples: Dict = calculate_icg_r15(samples_df=samples, dfs=dfs)
+    samples_df: pd.DataFrame = classification(samples=samples)
+    return samples_df
 
 
 if __name__ == "__main__":
@@ -66,4 +68,5 @@ if __name__ == "__main__":
     samples = example_classification()
     print("-" * 80)
     print(samples.head())
+    samples.t
 
