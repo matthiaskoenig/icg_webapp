@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 import pandas as pd
 import numpy as np
@@ -29,7 +29,7 @@ units = {
     "resection_rate":  'dimensionless',
 }
 
-def simulate_samples(samples: pd.DataFrame, r: roadrunner.RoadRunner) -> xr.Dataset:
+def simulate_samples(samples: pd.DataFrame, r: roadrunner.RoadRunner) -> List[pd.DataFrame]:
     """Simulate sample individuals with roadrunner.
 
     Samples contain multiple samples per individual and possibly multiple
@@ -49,13 +49,15 @@ def simulate_samples(samples: pd.DataFrame, r: roadrunner.RoadRunner) -> xr.Data
 
     # simulate and store in xresult structure
     xres = []
-    n_samples = len(samples.values[0])
+
+    n_samples = changes["IVDOSE_icg"].size
+    # console.print(f"Number of samples: {n_samples}")
     for k in range(n_samples):
-        console.rule(f"sample: {k}", align="left", style="white")
+        # console.rule(f"sample: {k}", align="left", style="white")
         r.resetAll()
         for key, values in changes.items():
             value = float(values[k])
-            console.print(f"{key} = {value} {units[key]}")
+            # console.print(f"{key} = {value} {units[key]}")
             r.setValue(key, value)
         s = r.simulate(start=0, end=15, steps=100)
         df = pd.DataFrame(s, columns=s.colnames)
@@ -65,20 +67,23 @@ def simulate_samples(samples: pd.DataFrame, r: roadrunner.RoadRunner) -> xr.Data
 
 
 
-# def calculate_pk(samples, xres) -> pd.DataFrame:
-#     """Calculates pk from results and adds to the model."""
-#
-#     # ICG-R15
-#     #  icg(t=15)/max(icg)  # dimensionless
-#     icg_t15 = xres.isel(_time=-1)["[Cve_icg]"]
-#     # print("icg_t15", icg_t15)
-#     icg_max = xres["[Cve_icg]"].max(dim="_time")
-#     # print("icg_max", icg_max)
-#     icg_r15 = icg_t15/icg_max
-#     # print("icg_r15", icg_r15)
-#     samples["postop_r15_model"] = icg_r15.values
-#
-#     return samples
+def calculate_icg_r15(samples: Dict, dfs: List[pd.DataFrame]) -> pd.DataFrame:
+    """Calculates pk from results and adds to the model."""
+
+    icg_r15 = np.zeros_like(samples["IVDOSE_icg"])
+    for k, df in enumerate(dfs):
+        # ICG-R15
+        #  icg(t=15)/max(icg)  # dimensionless
+        icg = df["[Cve_icg]"].values
+        icg_t15 = icg[-1]  # last concentration
+        # print("icg_t15", icg_t15)
+        icg_max = icg.max()
+        # print("icg_max", icg_max)
+        icg_r15[k] = icg_t15/icg_max
+        # print("icg_r15", icg_r15)
+
+    samples["postop_r15_model"] = icg_r15
+    return samples
 
 
 if __name__ == "__main__":
@@ -90,11 +95,14 @@ if __name__ == "__main__":
         n=100,
         resection_rates=np.linspace(0.1, 0.9, num=9)
     )
+    print(samples)
+    console.rule(style="white")
+
     r = load_model(model_path=icg_model_path)
-    xres = simulate_samples(samples, r=r)
-    # samples = calculate_pk(samples=samples, xres=xres)
+    dfs = simulate_samples(samples, r=r)
+    samples = calculate_icg_r15(samples=samples, dfs=dfs)
 
     console.rule(style="white")
     # print(xres)
-    # print(samples.head())
+    print(samples.head())
     console.rule(style="white")

@@ -8,7 +8,7 @@ from settings import icg_model_path
 
 
 import sampling
-from simulation import simulate_samples, calculate_pk, load_model
+from simulation import simulate_samples, calculate_icg_r15, load_model
 
 # from classification import classification
 # from visualization import figure_boxplot, figure_histograms

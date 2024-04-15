@@ -8,7 +8,7 @@ from sklearn.svm import SVC
 
 from sampling import samples_for_individual
 from settings import icg_model_path
-from simulation import simulate_samples, calculate_pk, load_model
+from simulation import simulate_samples, calculate_icg_r15, load_model
 
 base_path = Path(__file__).parent
 
@@ -56,7 +56,7 @@ def example_classification(f_cirrhosis=0) -> pd.DataFrame():
 
     simulator = load_model(model_path=icg_model_path)
     xres, samples = simulate_samples(samples, simulator)
-    samples = calculate_pk(samples=samples, xres=xres)
+    samples = calculate_icg_r15(samples=samples, xres=xres)
 
     samples = classification(samples=samples)
     return samples
