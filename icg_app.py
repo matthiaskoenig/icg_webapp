@@ -13,6 +13,31 @@ from simulation import simulate_samples, calculate_icg_r15, load_model
 from classification import classification
 from visualization import figure_boxplot, figure_histograms
 
+st.set_page_config(
+    page_title="ICG app",
+    page_icon="🧊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        "Get help": "mailto:konigmatt@googlemail.com",
+        "Report a bug": "https://github.com/matthiaskoenig/icg_webapp/issues/new",
+        "About": """
+        ICG web application.
+        """,
+    },
+)
+# st.markdown("""
+#         <style>
+#                .block-container {
+#                     padding-top: 2rem;
+#                     padding-bottom: 1rem;
+#                     padding-left: 5rem;
+#                     padding-right: 5rem;
+#                 }
+#         </style>
+#         """, unsafe_allow_html=True)
+#
+
 np.random.seed(42)
 
 '''
