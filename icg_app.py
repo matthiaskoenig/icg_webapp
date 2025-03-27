@@ -59,12 +59,12 @@ col3.markdown("**Liver parameters**")
 liver_volume = col3.number_input(
     "Liver volume [ml]",
     min_value=500.0, max_value=3000.0,
-    value=np.NaN
+    value=np.nan
 )
 liver_bloodflow = col3.number_input(
     "Hepatic blood flow [ml/min]",
     min_value=500.0, max_value=3000.0,
-    value=np.NaN
+    value=np.nan
 )
 if cpt == 'No cirrhosis':
     f_cirrhosis = 0.0
