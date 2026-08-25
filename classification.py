@@ -65,8 +65,7 @@ def example_classification(f_cirrhosis=0) -> pd.DataFrame():
 
 if __name__ == "__main__":
 
-    samples = example_classification()
+    samples: pd.DataFrame = example_classification(f_cirrhosis=0.5)
     print("-" * 80)
     print(samples.head())
-    samples.t
-
+    samples.to_csv("example_df.tsv", sep="\t", index=True)

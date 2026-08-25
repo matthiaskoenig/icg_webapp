@@ -2,17 +2,17 @@
 Streamlit web application for the indocyanine green model.
 
 ## Setup environment
-To run the example applications install the requirements 
+This project uses [`uv`](https://docs.astral.sh/uv/) for dependency management. Install `uv`, then sync the environment:
 ```
 cd icg_webapp
-mkvirtualenv icg_webapp --python=python3.11
-(icg_webapp) pip install -r requirements.txt --upgrade
+uv sync
 ```
+This creates a `.venv` and installs the pinned dependencies from `uv.lock`.
 
 ## Run application
 To run the app use:
 ```
-streamlit run icg_app.py
+uv run streamlit run icg_app.py
 ``` 
 
 ## Documentation

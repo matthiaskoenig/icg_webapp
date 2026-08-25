@@ -13,6 +13,31 @@ from simulation import simulate_samples, calculate_icg_r15, load_model
 from classification import classification
 from visualization import figure_boxplot, figure_histograms
 
+st.set_page_config(
+    page_title="ICG app",
+    page_icon="🧊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        "Get help": "mailto:konigmatt@googlemail.com",
+        "Report a bug": "https://github.com/matthiaskoenig/icg_webapp/issues/new",
+        "About": """
+        ICG web application.
+        """,
+    },
+)
+# st.markdown("""
+#         <style>
+#                .block-container {
+#                     padding-top: 2rem;
+#                     padding-bottom: 1rem;
+#                     padding-left: 5rem;
+#                     padding-right: 5rem;
+#                 }
+#         </style>
+#         """, unsafe_allow_html=True)
+#
+
 np.random.seed(42)
 
 '''
@@ -114,7 +139,7 @@ col3.pyplot(fig=fig_histograms["LIVBF"], clear_figure=False)
 fig_boxplots = figure_boxplot(data)
 
 col1, col2 = st.columns(2)
-col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False, bbox_inches="tight")
+col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False)
 col2.pyplot(fig=fig_boxplots["y_score"], clear_figure=False)
 
 
