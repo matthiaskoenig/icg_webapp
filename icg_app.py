@@ -84,12 +84,12 @@ col3.markdown("**Liver parameters**")
 liver_volume = col3.number_input(
     "Liver volume [ml]",
     min_value=500.0, max_value=3000.0,
-    value=np.NaN
+    value=np.nan
 )
 liver_bloodflow = col3.number_input(
     "Hepatic blood flow [ml/min]",
     min_value=500.0, max_value=3000.0,
-    value=np.NaN
+    value=np.nan
 )
 if cpt == 'No cirrhosis':
     f_cirrhosis = 0.0
@@ -139,7 +139,7 @@ col3.pyplot(fig=fig_histograms["LIVBF"], clear_figure=False)
 fig_boxplots = figure_boxplot(data)
 
 col1, col2 = st.columns(2)
-col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False, bbox_inches="tight")
+col1.pyplot(fig=fig_boxplots["postop_r15_model"], clear_figure=False)
 col2.pyplot(fig=fig_boxplots["y_score"], clear_figure=False)
 
 

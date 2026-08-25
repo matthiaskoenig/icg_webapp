@@ -33,8 +33,8 @@ with open(base_path / "data" / "cov_liver_volume_bloodflow.json", "r") as f_json
         info['cov'] = np.array(info['cov'])
 
 
-def sample_liver_volume_bloodflow(samples: pd.DataFrame, liver_volume: float = np.NaN,
-                                  liver_bloodflow: float = np.NaN) -> pd.DataFrame:
+def sample_liver_volume_bloodflow(samples: pd.DataFrame, liver_volume: float = np.nan,
+                                  liver_bloodflow: float = np.nan) -> pd.DataFrame:
     """Adds liver volume and blood flow information to samples.
 
     Changes samples in place.
@@ -88,8 +88,8 @@ def sample_liver_volume_bloodflow(samples: pd.DataFrame, liver_volume: float = n
 def samples_for_individual(
         bodyweight: float,
         age: float,
-        liver_volume: float = np.NaN,
-        liver_bloodflow: float = np.NaN,
+        liver_volume: float = np.nan,
+        liver_bloodflow: float = np.nan,
         f_cirrhosis: float = 0.0,
         n: int = 100,
         resection_rates: np.ndarray = None,

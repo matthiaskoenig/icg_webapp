@@ -68,7 +68,7 @@ def boxplot(ax, data, k, rate, n_rates, ylabel):
 
     ax.set_ylim(top=1, bottom=0)
 
-    ax.boxplot(data, labels=[np.round(rate, decimals=1)], widths=0.9, showmeans=True, showfliers=True)
+    ax.boxplot(data, tick_labels=[np.round(rate, decimals=1)], widths=0.9, showmeans=True, showfliers=True)
     return ax
 
 
